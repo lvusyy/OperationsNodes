@@ -1,0 +1,402 @@
+ track_script
+ vrrp_script
+ 
+ 
+ ! Configuration File for keepalived
+#号 和 !号 都是注释
+
+global_defs {  #全局定义
+   notification_email {  #定义报警邮件地址，当服务切换或RS节点有故障时，发送报警邮件
+     acassen@firewall.loc  #收件人1
+     failover@firewall.loc  #收件人2
+     sysadmin@firewall.loc  #收件人3
+   }
+   notification_email_from Alexandre.Cassen@firewall.loc  #发件人
+   smtp_server 192.168.200.1  #发送邮件的smtp服务器
+   smtp_connect_timeout 30  #连接smtp的超时时间
+    #所有邮件报警相关参数均可以不配，可以交由监控软件（如Nagios、Zabbix）实现
+   router_id LVS_DEVEL  #Keepalived服务器的路由标识。在一个局域网内，此标识应该唯一
+   vrrp_skip_check_adv_addr
+   vrrp_strict
+   vrrp_garp_interval 0
+   vrrp_gna_interval 0
+}
+
+ 
+vrrp_instance VI_1 {
+  #定义一个vrrp实例，名字是 VI_1
+  #每个vrrp实例可以认为是Keepalived服务的一个实例或作为一个业务服务，在Keepalived服务配置中，vrrp实例可以有多个
+  #注意，存在于主节点中的vrrp实例在备节点中也要存在，这样才能实现故障切换转移
+    state MASTER
+       #当前vrrp实例状态，MASTER|BACKUP,大写
+    interface eth0
+      #网络通信接口，注意服务器的接口名称
+    virtual_router_id 51
+      #虚拟路由ID标识，这个标识最好是一个数字，并在keepalived.conf配置中唯一
+      #MASTER和BACKUP配置中相同vrrp实例的virtual_router_id必须一致，否则将出现脑裂问题
+    priority 100
+      #优先级，数字越大，表示实例优先级越高
+      #在同一个vrrp实例里，MASTER的优先级要高于BACKUP才行
+    advert_int 1
+      #同步通知间隔，MASTER和BACKUP之间通信检查的时间间隔，单位是秒
+    authentication { 
+      #权限认证配置
+        auth_type PASS
+          #认证类型，有PASS（Simple Passwd）和 AH（IPSEC），官方推荐PASS
+          #验证密码为明文方式，最好长度不要超过8个字符，建议使用4位的数字。同一个vrrp实例的MASTER和BACKUP使用相同的密码才能正常通信
+        auth_pass 1111  #通信密码
+    }
+    virtual_ipaddress {
+      #虚拟ip，可以配置多个虚拟ip，配置是最好指定子网掩码和虚拟IP绑定的网络接口。否则子网掩码默认是32位，绑定的接口和前面的interface参数配置一致
+      #虚拟IP就是工作中需要和域名绑定的IP，和配置高可用服务监听的IP要保持一致
+        192.168.200.16
+        192.168.200.17
+        192.168.200.18
+    }
+    
+    
+    Keepalived双实例双主模式
+前面的Keepalived栗子是单实例主备模式，但Keepalived还支持双实例多业务双向主备模式。需要创建新实例。
+双实例主备环境：
+192.168.1.7 instance VI_1-BACKUP, instance VI_2-MASTER;
+192.168.1.9 instance VI_1-MASTER, instance VI_2-BACKUP;
+
+instance 1-VIP：192.168.3.88-www.zhang.com；
+instance 2-VIP:192.168.3.99-www.zhang.cn；
+#记得添加hosts
+
+192.168.1.9-keepalived.conf：
+! Configuration File for keepalived
+
+global_defs {
+   router_id zhang
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface ens33
+    virtual_router_id 51
+    priority 150
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        192.168.3.88/22 dev ens33 label ens33:1
+    }
+}
+
+vrrp_instance VI_2 {
+    state BACKUP
+    interface ens33
+    virtual_router_id 52
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 2222
+    }
+
+    virtual_ipaddress {
+        192.168.3.99/22 dev ens 33 label ens33:2
+    }
+}
+
+192.168.1.7-keepalived.conf：
+! Configuration File for keepalived
+
+global_defs {
+   router_id zhang
+ }
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+
+    virtual_ipaddress {
+        192.168.3.88/22 dev eth0 label eth0:1
+        }
+}
+
+vrrp_instance VI_2 {
+    state MASTER
+    interface eth0
+    virtual_router_id 52
+    priority 150
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 2222
+    }
+
+    virtual_ipaddress {
+        192.168.3.99/22 dev eth0 label eth0:2
+    }
+}
+
+
+
+可以在keepalived.conf文件中定义的脚本，用以实现某个检测功能；
+
+例：检测/etc/keepalived目录下down文件是否存在，如果存在则优先级减20，如果不存在表示正常
+
+vrrp_script chk {
+
+  script "[[ -f /etc/keepalived/down ]] && exit 1 || exit 0"
+
+  interval 1
+
+  weight -20
+
+注：这个脚本的作用是用于维护MASTER,使MASTER手动下线
+
+如何调用上面定义的脚本呢？
+
+  在vrrp实例中(vrrp_instance VI_1)加上track_script用于追踪脚本
+
+  track_script {
+
+    chk
+
+  }
+
+notify的用法：
+
+  notify_master:当当前节点成为master时，通知脚本执行任务(一般用于启动某服务，比如nginx,haproxy等)
+
+  notify_backup:当当前节点成为backup时，通知脚本执行任务(一般用于关闭某服务，比如nginx,haproxy等)
+
+  notify_fault：当当前节点出现故障，执行的任务; 
+
+  例：当成为master时启动haproxy,当成为backup时关闭haproxy
+
+  notify_master "/etc/keepalived/start_haproxy.sh start"
+
+  notify_backup "/etc/keepalived/start_haproxy.sh stop"
+
+一个完整的实例：
+
+  MASTER:初始priority为100
+
+  BACKUP:初始priority为90
+
+  模拟MASTER产生故障：
+
+  当检测到/etc/keepalived目录下有down文件时，priority减少20，变为80；低于BACKUP的priority；
+
+  此时MASTER变成BACKUP，同时执行notify_backup的脚本文件（关闭haproxy）；
+
+  同时BACKUP变成MASTER，同时执行notify_master的脚本文件（启动haproxy）；
+
+  模拟MASTER故障恢复：
+
+  当删除/etc/keepalived目录下的down文件时，原MASTER的优先级又变为100，高于原BACKUP的priority;
+
+  此时原MASTER由BACKUP又抢占成了MASTER,同时执行notify_master的脚本文件（启动haproxy）；
+
+  同时原BACKUP由MASTER又变了BACKUP,同时执行notify_backup的脚本文件（关闭haproxy）；
+
+MASTER的配置：
+
+global_defs {
+   notification_email {
+     acassen@firewall.loc
+     failover@firewall.loc
+     sysadmin@firewall.loc
+   }
+   notification_email_from Alexandre.Cassen@firewall.loc
+   smtp_server 192.168.200.1
+   smtp_connect_timeout 30
+   router_id LVS_DEVEL
+}
+vrrp_script chk {
+   script "[[ -f /etc/keepalived/down ]] && exit 1 || exit 0"
+   interval 1
+   weight -20
+}
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth1
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        10.0.22.245
+    }
+    track_script {
+      chk
+    }
+    notify_master "/etc/keepalived/start_haproxy.sh start"
+    notify_backup "/etc/keepalived/start_haproxy.sh stop"
+BACKUP的配置：
+
+global_defs {
+   notification_email {
+     acassen@firewall.loc
+     failover@firewall.loc
+     sysadmin@firewall.loc
+   }
+   notification_email_from Alexandre.Cassen@firewall.loc
+   smtp_server 192.168.200.1
+   smtp_connect_timeout 30
+   router_id LVS_DEVEL
+}
+ 
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 51
+    priority 90
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+       10.0.22.245
+    }
+    notify_master "/etc/keepalived/start_haproxy.sh start"
+    notify_backup "/etc/keepalived/start_haproxy.sh stop"
+ 
+}
+start_haproxy.sh的脚本内容：
+
+#!/bin/bash
+case "$1" in
+  start)
+    /etc/init.d/haproxy start
+  ;;
+  stop)
+    /etc/init.d/haproxy stop
+  ;;
+  restart)
+    /etc/init.d/haproxy stop
+    /etc/init.d/haproxy start
+  *)
+    echo "Usage:$0 start|stop|restart"
+  ;;
+esac
+keepalived检测nginx,当nginx服务不正常时自动降级，当nginx恢复时自动升级：
+
+check_nginx.sh脚本
+
+#!/bin/bash
+nmap localhost -p 80 | grep "80/tcp open"
+if [ $? -ne 0 ];then
+        exit 10
+fi
+notify.sh脚本：
+
+#!/bin/bash
+VIP=$2
+sendmail (){
+        subject="${VIP}'s server keepalived state is translate"
+        content="`date +'%F %T'`: `hostname`'s state change to master"
+        echo $content | mail -s "$subject" zhengwei.liu@staples.cn
+}
+case "$1" in
+  master)
+        nmap localhost -p 80 | grep "80/tcp open"
+        if [ $? -ne 0 ];then
+                /etc/init.d/nginx start
+        fi
+        sendmail
+  ;;
+  backup)
+        nginx_psr=`ps -C nginx --no-header | wc -l`
+        if [ $nginx_psr -ne 0 ];then
+                /etc/init.d/nginx stop
+        fi
+  ;;
+  *)
+        echo "Usage:$0 master|backup VIP"
+  ;;
+esac
+MASTER配置
+
+! Configuration File for keepalived
+
+global_defs {
+    notification_email {
+     acassen@firewall.loc
+     failover@firewall.loc
+     sysadmin@firewall.loc
+   }
+   notification_email_from Alexandre.Cassen@firewall.loc
+   smtp_server 192.168.200.1
+   smtp_connect_timeout 30
+   router_id https
+}
+vrrp_script chk_nginx {
+    script "/etc/keepalived/check_nginx.sh"
+    interval 1
+    weight -20
+}
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 54
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+	172.16.8.19/25
+    }
+    track_script {
+	chk_nginx
+    }
+    notify_master "/etc/keepalived/notify.sh master 172.16.8.19"
+    notify_backup "/etc/keepalived/notify.sh backup 172.16.8.19"
+}
+BACKUP配置：
+
+backup无需检测nginx是否正常，默认nginx是未启动的，当升级为MASTER时启动nginx，当降级为BACKUP时关闭
+
+! Configuration File for keepalived
+
+global_defs {
+   notification_email {
+     acassen@firewall.loc
+     failover@firewall.loc
+     sysadmin@firewall.loc
+   }
+   notification_email_from Alexandre.Cassen@firewall.loc
+   smtp_server 192.168.200.1
+   smtp_connect_timeout 30
+   router_id https
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 54
+    priority 90
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+	172.16.8.19/25
+    }
+    notify_master "/etc/keepalived/notify.sh master 172.16.8.19"
+    notify_backup "/etc/keepalived/notify.sh backup 172.16.8.19"
+}
+
+
+ 

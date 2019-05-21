@@ -1,0 +1,55 @@
+tomcat
+
+主配置文件解析
+.server.xml配置文件框架
+<?xml version='1.0' encoding='utf-8'?>
+<Server port="8005" shutdown="SHUTDOWN">
+<Service name="Catalina">
+<Connector port="8080" protocol="HTTP/1.1"
+	connectionTimeout="20000"
+	redirectPort="8443"/>
+<Connector port="8009" portocol="AJP/1.3" redirectPort="8443"/>
+<Engine name="Catalina" defaultHost="localhost">
+<Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">
+</Host>
+</Engine>
+</Service>
+</Server>
+
+
+自己生成秘钥
+keytool -genkeypair -alias tomcat -keyalg RSA -keystore /usr/local/tomcat/keystore
+
+<server>
+  <service>
+      <connector prot="" protocol="" maxthreads="" SSLEnabled="" scheme="https" secure="" clientAuth="" sslProtocol="" keystoreFile="" keystorepass="">
+  </service>
+  </server>
+
+  
+
+日志
+
+<Host name="www.a.com" appBase="a" unpackWARS="true"
+autoDeploy="true">
+<Context path="" docBase="base" />
+<Valve className="org.apache.catalina.valves.AccessLogValve"
+  prefix="wwwacom_access_log." sufttix=".txt"
+    pattern="common"/>
+</Host>
+
+
+
+varnish 安装
+
+安装依赖
+yum install gcc readline-devel ncurese-devel
+yum install -y python-docutils-0.11-0.2.20130715svn7687.el7.noarch.rpm  
+useradd -s /sbin/nologin  varnish
+tar -xvf varnish-5.2.1
+cd .. make && make install 
+cp etc/example.vcl /usr/local/etc/default.vcl
+
+
+
+

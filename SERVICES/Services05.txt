@@ -1,0 +1,157 @@
+
+#######
+计算机开机启动项:匹配及停止
+    1.硬盘   2.光驱设备  3.U盘   4.网络引导安装
+
+
+#####
+
+rsync同步操作
+• 命令用法
+– rsync [选项... 源目录 目标目录
+
+• 同步与复制的差异
+– 复制:完全拷贝源到目标
+– 同步:增量拷贝,只传输变化过的数据
+
+• rsync操作选项
+  – -n:测试同步过程,不做实际修改
+  – --delete:删除目标文件夹内多余的文档
+  – -a:归档模式,相当于-rlptgoD
+  – -v:显示详细操作信息
+  – -z:传输过程中启用压缩/解压
+
+• 本地同步
+– rsync [选项... 本地目录1     本地目录2
+– rsync [选项... 本地目录1/    本地目录2
+# mkdir /todir
+# rsync -a  /boot   /todir/     #同步整个文件夹
+# rsync -a  /boot/  /todir/     #只同步目录下的数据
+
+# mkdir   /nsd   /test
+# cp  /etc/passwd   /nsd
+# touch  /nsd/1.txt
+# mkdir  /nsd/public
+# ls  /nsd/
+# rsync -avz /nsd  /test/  #同步目录本身
+# ls  /test
+# ls  /test/nsd
+
+# rm -rf /test/*
+# rsync -avz  /nsd/  /test/  #同步目录内容
+# touch  /nsd/{3..10}.txt
+# ls  /nsd/
+# rsync -avz /nsd/  /test/
+# ls  /test
+
+
+删除目标目录多余的文档
+# rm -rf /nsd/*.txt
+# ls /nsd
+# ls /test
+
+# rsync -avz --delete /nsd/ /test/
+# ls /nsd
+# ls /test
+  
+
+rsync+SSH同步
+
+
+• 与远程的 SSH目录保持同步
+– 下行:rsync [...  user@host:远程目录   本地目录
+– 上行:rsync [...  本地目录   user@host:远程目录
+
+
+
+
+虚拟机A:
+# ls /opt
+# rsync -avz --delete /opt/  root@192.168.4.207:/opt/
+虚拟机B:
+# ls /opt
+
+虚拟机A:
+# touch /opt/haxi.txt
+# rsync -avz --delete /opt/  root@192.168.4.207:/opt/
+虚拟机B:
+# ls /opt
+
+
+
+########
+实时同步
+
+虚拟机A:
+一  生成 公钥 与 私钥   实现ssh无密码验证         
+# ssh-keygen      #一路回车 
+# ls /root/.ssh/
+id_rsa(私钥)   id_rsa.pub(公钥)
+
+2.复制公钥到对方
+# ssh-copy-id root@192.168.4.207
+
+# rsync -avz --delete /opt/  root@192.168.4.207:/opt/
+
+虚拟机B:
+[root@pc207 ~# ls /root/.ssh/
+authorized_keys
+
+
+二  安装inotify-tools实现监控目录内容变化
+
+步骤一:安装开发工具gcc  make
+步骤二:tar解包
+
+
+# tar -xf  /tools/inotify-tools-3.13.tar.gz -C /test
+# ls  /test/inotify-tools-3.13/
+步骤三: ./configure 配置
+# cd  /test/inotify-tools-3.13/
+# ./configure  
+步骤四:make 编译,生成可执行的二进制程序文件
+# cd  /test/inotify-tools-3.13/
+# make
+步骤五:make install 安装,将编译好的文件复制到安装目录
+# cd  /test/inotify-tools-3.13/
+# make  install 
+# ls /usr/local/bin/inotifywait 
+/usr/local/bin/inotifywait
+
+
+• 基本用法
+– inotifywait [选项 目标文件夹
+
+• 常用命令选项
+– -m,持续监控(捕获一个事件后不退出)
+– -r,递归监控、包括子目录及文件
+– -q,减少屏幕输出信息
+– -e,指定监视的 modify、move、create、delete、
+attrib 等事件类别
+
+
+三 书写Shell脚本,实时同步
+    
+  for比较适合有次数的循环       
+
+  while比较适合死循环  
+
+   while  [ 条件 
+   do
+         重复执行的代码
+   done
+
+
+# cat /root/rsync.sh
+#!/bin/bash
+while  inotifywait  -rqq  /opt/ 
+ do
+  rsync -az --delete /opt/  root@192.168.4.207:/opt/ 
+ done &
+# chmod +x /root/rsync.sh
+
+# /root/rsync.sh
+# pgrep -l rsync
+# killall  rsync.sh
+
+

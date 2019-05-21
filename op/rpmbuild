@@ -1,0 +1,36 @@
+yum install rpmbuild
+
+#1.生成所需目录和模板文件
+rpmbuild -ba nginx.spec 
+
+#2.复制源码到 rpmbuild/SOURCES/
+cp nginx*.gz /root/rpmbuild/SOURCES/
+
+#3.修改SPEC配置文件
+vim /root/rpmbuild/SPECS/nginx.spec
+
+[root@web1 ~]# vim /root/rpmbuild/SPECS/nginx.spec 
+Name:nginx        
+Version:1.12.2
+Release:    10
+Summary: Nginx is a web server software.    
+License:GPL    
+URL:    www.test.com    
+Source0:nginx-1.12.2.tar.gz
+#BuildRequires:    #编译之前所需要的软件包. 如果没装就失败.不尝试编译. 如gcc之类
+#Requires:     #添加用户安装时 软件所需要软件包,如果用户没有安装yum会自动安装.无需用户独立安装
+%description
+nginx [engine x] is an HTTP and reverse proxy server.
+%post
+useradd nginx                       //非必需操作：安装后脚本(创建账户)
+%prep
+%setup –q                            //自动解压源码包，并cd进入目录
+%build
+./configure
+make %{?_smp_mflags}
+%install
+make install DESTDIR=%{buildroot}
+%files
+%doc
+/usr/local/nginx/*            //对哪些文件与目录打包. 编译安装完成后 rpm打包的文件夹
+%changelog

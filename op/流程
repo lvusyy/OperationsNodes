@@ -1,0 +1,49 @@
+流程
+1.安装nginx
+mariadb-server mariadb-devel php php-fpm php-mysql
+
+2.启动服务
+nginx
+systemctl start mariadb
+systemctl start php-fpm
+
+3.修改配置nginx.conf
+location /{}
+location ~ \.php${}
+
+
+ location  ~  \.php$  {
+            root           html;
+            fastcgi_pass   127.0.0.1:9000;    #将请求转发给本机9000端口，PHP解释器
+            fastcgi_index  index.php;
+            #fastcgi_param   SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+            include        fastcgi.conf;
+        }
+[root@proxy ~]# vim /usr/local/nginx/html/test1.php
+<?php
+$i="This is a test Page";
+echo $i;
+?>
+
+用户----nginx----php(脚本---数据库)
+
+https
+
+gcc openssl-devel pcre-devel
+
+
+PHP-FPM(FastCGI Process Manager：FastCGI进程管理器)
+php php的脚本解释器
+
+地址重写
+rewirte 旧地址(支持正则) 新地址 [选项]
+rewirte /a.html /b.html ;
+rewrite ^/(.*)      https://www.baidu.com/$1; redirect 
+条件重写
+
+#注意 if 后面必须有空格
+if ($http_user_agent ~* chrome){
+    rewrite ^/(.*) https://www.baidu.com/$1
+    }
+    
+s

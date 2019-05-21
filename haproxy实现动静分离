@@ -1,0 +1,134 @@
+当客户端访问haproxy时，请求的是静态文件内容时，请求转交给static server，请求的是php内容时，请求转交给php server，请求的是jsp内容时，请求转交给tomcat server，以实现动静分离
+
+1.6 编辑haproxy server的haproxy主配置文件：
+
+代码内容如下
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+        log 127.0.0.1   local3            
+        maxconn 204800
+        chroot /usr/local/haproxy
+        user  haproxy
+        group haproxy
+        daemon
+        nbproc 1
+        pidfile /var/run/haproxy.pid
+        stats socket /usr/local/haproxy/stats
+        description haproxy server
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+        log     global
+        mode    http
+        maxconn 10000
+        option  httplog
+        option  httpclose
+        option  dontlognull
+        option  forwardfor      except 127.0.0.0/8
+        retries 3
+        option redispatch
+        option abortonclose
+        balance roundrobin
+        timeout http-request    10s
+        timeout queue           1m
+        timeout connect         10s
+        timeout client          1m
+        timeout server          1m
+        timeout http-keep-alive 10s
+        timeout check           10s
+#---------------------------------------------------------------------
+# use listen setting the haproxy status for site
+#---------------------------------------------------------------------
+listen admin_status     #设置haproxy监控状态
+        bind *:3030
+        mode http
+        log 127.0.0.1 local3 err
+        stats refresh 5s
+        stats uri /status     #监控状态页面访问url
+        stats realm www.skeryp.com
+        stats auth admin:admin
+        stats hide-version
+        stats admin if TRUE
+#---------------------------------------------------------------------
+# main listen which proxys to the backends
+#---------------------------------------------------------------------
+listen  www
+        bind *:80
+        maxconn 5000
+        mode http
+        log global
+        option httplog
+        option httpclose
+        option forwardfor
+        log         global
+        default_backend default   #设置默认访问页面
+        #定义当请求的内容是静态内容时，将请求转交给static server的acl规则       
+        acl url_static path_beg  -i /static /p_w_picpaths /img /javascript /stylesheets
+        acl url_static path_end  -i .jpg .gif .png .css .js .html 
+        acl host_static hdr_beg(host)  -i img. video. download. ftp. imags. videos.
+        #定义当请求的内容是php内容时，将请求转交给php server的acl规则    
+        acl url_php path_end     -i .php
+        #定义当请求的内容是.jsp或.do内容时，将请求转交给tomcat server的acl规则    
+        acl url_jsp path_end     -i .jsp .do
+        #引用acl匹配规则
+        use_backend static_pool if  url_static or host_static
+        use_backend php_pool    if  url_php
+        use_backend tomcat_pool if  url_jsp
+        #定义后端backend server
+ backend static_pool
+        option  httpchk GET /index.html
+        server static1 192.168.0.247:80 cookie id1  check inter 2000 rise 2 fall 3
+ backend php_pool
+        option  httpchk GET /info.php
+        server php1 192.168.0.235:80 cookie id1 check inter 2000 rise 2 fall 3
+ backend tomcat_pool
+        option  httpchk GET /index.jsp
+        server tomcat1 192.168.0.238:8086 cookie id2 check inter 2000 rise 2 fall 3
+
+#<----------------------default site for listen and frontend------------------------------------>
+backend default
+        mode http
+        option  httpchk GET /index.html
+        server default 192.168.0.127:80 cookie id1 check inter 2000 rise 2 fall 3 maxconn 5000
+注意:
+
+上面的www的配置部分也可以用frontend配置块来替换，如下所示:
+
+
+frontend www
+        bind *:80
+        maxconn 5000
+        mode http
+        log global
+        option httplog
+        option httpclose
+        option forwardfor
+        log         global
+        default_backend default       
+        acl url_static path_beg  -i /static /p_w_picpaths /img /javascript /stylesheets
+        acl url_static path_end  -i .jpg .gif .png .css .js .html 
+        acl host_static hdr_beg(host)  -i img. video. download. ftp. imags. videos.
+        acl url_php path_end     -i .php
+        acl url_jsp path_end     -i .jsp .do
+        use_backend static_pool if  url_static or host_static
+        use_backend php_pool    if  url_php
+        use_backend tomcat_pool if  url_jsp
+backend static_pool
+        option  httpchk GET /index.html
+        server static1 192.168.0.247:80 cookie id1  check inter 2000 rise 2 fall 3
+ backend php_pool
+        option  httpchk GET /info.php
+        server php1 192.168.0.235:80 cookie id1 check inter 2000 rise 2 fall 3
+ backend tomcat_pool
+        option  httpchk GET /index.jsp
+        server tomcat1 192.168.0.238:8086 cookie id2 check inter 2000 rise 2 fall 3
+备注:  listen配置块是frontend和backend的组合体，listen里面可以单独配置backend不配置frontend，也可以组合使用，即listen配置区域可以交差使用frontend和backend的配置,如acl可以配置到frontend块， 也可以直接配置到listen块，但是不能配置到backend块。如backend的中server可以直接配置到listen配置区域，但不能直接配置到frontend配置区域
+
+1.7 重启haproxy服务：
+
+server haproxy restart 

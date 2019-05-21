@@ -1,0 +1,80 @@
+ 加载USB设备的同时实时查看设备的相关属性，可以使用monitor指令。
+
+ udevadm monitor --property
+ 
+ 
+```UDEV  [1431.365868] add      /devices/pci0000:00/0000:00:14.0/usb1/1-9/1-9:1.0/host5/target5:0:0/5:0:0:0/block/sdb/sdb1 (block)
+ACTION=add
+DEVLINKS=/dev/disk/by-id/usb-SanDisk_Ultra_Fit_4C530001031122123532-0:0-part1 /dev/disk/by-label/Kali\x20Live /dev/disk/by-path/pci-0000:00:14.0-usb-0:9:1.0-scsi-0:0:0:0-part1 /dev/disk/by-uuid/2018-10-16-16-10-29-00
+DEVNAME=/dev/sdb1
+DEVPATH=/devices/pci0000:00/0000:00:14.0/usb1/1-9/1-9:1.0/host5/target5:0:0/5:0:0:0/block/sdb/sdb1
+DEVTYPE=partition
+ID_BUS=usb
+ID_FS_APPLICATION_ID=KALI\x20LINUX
+ID_FS_BOOT_SYSTEM_ID=EL\x20TORITO\x20SPECIFICATION
+ID_FS_LABEL=Kali_Live
+ID_FS_LABEL_ENC=Kali\x20Live
+ID_FS_PUBLISHER_ID=KALI
+ID_FS_TYPE=iso9660
+ID_FS_USAGE=filesystem
+ID_FS_UUID=2018-10-16-16-10-29-00
+ID_FS_UUID_ENC=2018-10-16-16-10-29-00
+ID_FS_VERSION=Joliet Extension
+ID_INSTANCE=0:0
+ID_MODEL=Ultra_Fit
+ID_MODEL_ENC=Ultra\x20Fit\x20\x20\x20\x20\x20\x20\x20
+ID_MODEL_ID=5583
+ID_PART_ENTRY_DISK=8:16
+ID_PART_ENTRY_FLAGS=0x80
+ID_PART_ENTRY_NUMBER=1
+ID_PART_ENTRY_OFFSET=64
+ID_PART_ENTRY_SCHEME=dos
+ID_PART_ENTRY_SIZE=6130240
+ID_PART_ENTRY_TYPE=0x17
+ID_PART_TABLE_TYPE=dos
+ID_PATH=pci-0000:00:14.0-usb-0:9:1.0-scsi-0:0:0:0
+ID_PATH_TAG=pci-0000_00_14_0-usb-0_9_1_0-scsi-0_0_0_0
+ID_REVISION=1.00
+ID_SERIAL=SanDisk_Ultra_Fit_4C530001031122123532-0:0
+ID_SERIAL_SHORT=4C530001031122123532
+ID_TYPE=disk
+ID_USB_DRIVER=usb-storage
+ID_USB_INTERFACES=:080650:
+ID_USB_INTERFACE_NUM=00
+ID_VENDOR=SanDisk
+ID_VENDOR_ENC=SanDisk\x20
+ID_VENDOR_ID=0781
+MAJOR=8
+MINOR=17
+SEQNUM=3337
+SUBSYSTEM=block
+TAGS=:systemd:
+UDISKS_IGNORE=1
+USEC_INITIALIZED=184989```
+
+#### 查看设备属性相关信息
+devadm info --query=path --name=/dev/sdb
+devadm info --query=property --path=/block/sdb/sdb1
+
+#### 配置插入,移除时触发
+[root@proxy ~]# /etc/udev/rules.d/70-usb.rules
+ACTION=="add",ENV{ID_VENDOR}=="TOSHIBA",ENV{ID_SERIAL_SHORT}=="60A44CB4665EEE4133500001",RUN+="/usr/bin/systemctl start httpd"
+ACTION=="remove",ENV{ID_VENDOR}=="TOSHIBA",ENV{ID_SERIAL_SHORT}=="60A44CB4665EEE4133500001",RUN+="/usr/bin/systemctl stop httpd" 
+
+udev规则文件，常见指令操作符
+------------------------------------------------------------|
+== 			表示匹配				      |
+!=			表示不匹配
+=			指定赋予的值
++=			添加新值
+:=			指定值,且不允许被替换
+NAME="udisk"		定义设备名称
+SYMLINK+="data1"	定义设备的别名
+OWNER="student"	定义设备的所有者
+GROUP="student"	定义设备的所有组
+MODE="0600"		定义设备的权限
+ACTION="add"		判断设备的操作动作(添加或删除设备等)
+KERNEL=="sd[a-z]1"	判断设备的内核名称
+RUN+=程序		为设备添加程序
+
+--------------------------------------------------------------|

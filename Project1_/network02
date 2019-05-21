@@ -1,0 +1,110 @@
+信息传递 资源共享  增加可靠性  提高系统处理能力
+60 组交换   提高数据传输效率
+70～80  TCP/IP
+90 web
+wan  lan
+星形 容易实现  易扩展 故障容易排查
+网状 高可靠 高成本
+5层
+物理层 数据链路层  网络层 传输层 应用层
+iso 国际标准化组织
+ieee 电器与电子工程师学会
+
+双绞线 utp stp
+光纤
+
+568A  568B
+
+console线 配置线  控制线
+用户
+特权
+全局配置模式
+接口模式
+
+MAC地址   硬件地址   物理地址
+48位
+
+bit   1  0  二进制
+八进制
+十进制 192.168.0.1
+32位
+
+十六进制
+0123456789ABCDEF
+
+单播   一对一
+组播   一对多
+广播   一对所有
+
+MAC
+
+100Mbit
+
+1000Mb
+
+1字节(byte)  =  8位（bit）
+mac长度48位
+
+交换机工作原理
+学习  学习源mac地址
+广播  除数据来源的接口之外所有接口
+转发  正常通信
+更新  如果超过300秒无任何数据通信，交换机会清除mac地址表记录
+         如果所连接主机关机或重启，交换机会清除mac地址记录
+
+ipconfig /all       //在win系统中查看mac地址
+
+查看MAC地址表
+Tarena-sw1#show mac-address-table
+
+划分广播域（vlan）的好处
+限制广播
+增加安全
+提高带宽利用
+降低延迟
+
+创建vlan的最大数量4096
+默认交换机拥有vlan1，所有接口都在vlan1中
+
+Switch(config)#vlan 2    //创建了vlan2
+Switch(config-vlan)#name xiaoshou   //给vlan2定义名称
+Switch#show vlan brief   //查看vlan摘要信息
+Switch(config)#in f0/3   //进入f0/3接口
+Switch(config-if)#switchport access vlan 2  //把f0/3口加入vlan2
+Switch(config)#in range f0/5-6    //同时进入5、6接口
+===========================================
+为接口配置中继链路
+Switch(config)#in f0/7
+Switch(config-if)#switchport mode trunk   //将接口设置为trunk
+
+
+
+
+ftp://172.40.50.115/1811
+
+思路
+两台交换机分别需要创建vlan3
+并将5、6、7接口加入vlan3
+
+目标地址  源地址  类型/长度  数据 校验
+
+中继链路   trunk  干道
+ISL（Cisco私有协议）
+IEEE 802.1Q  公有
+
+access  接入链路     承载1个vlan
+trunk   中继链路     承载多个vlan，能够为数据帧打所属vlan的标签
+
+配置以太通道，提高链路速度与可靠
+Switch(config)# interface range fastEthernet 0/1-2
+Switch(config-if-range)#channel-group 1 mode on  //将两个接口捆绑为以太通道
+
+Switch# show etherchannel  summary   //
+
+
+
+
+
+
+
+

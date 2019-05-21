@@ -1,0 +1,146 @@
+ 
+
+ 服务配置文件夹	/usr/lib/systemd/system
+ 
+ 
+ 
+ 
+ 安装memcache
+ yum install -y memcached
+ 
+ 
+ 
+ 1.单机服务器有Session和cookie[防止重新登录]
+ 2.搭建集群服务器[默认session不共享,需要重复登录]
+ 3.web1和web2都把session写入memcached数据库
+    在proxy安装memcached,启动服务,telnet测色
+    给web1和web2安装memcache扩展包
+    
+    
+4.默认php会吧session写到/var/lib/php/sessions
+修改配置
+
+
+vim /etc/php-fpm.d/www.conf
+
+修改前
+
+php_value[session.save_handler]=files
+php_value[seesion.save_path]=/var/lib/php/session
+
+
+
+修改为
+php_value[session.save_handler]=memcache
+php_value[session.save_path]="tcp://192.168.2.5:11211"
+
+
+----------------------------------------------------
+memcache
+查看key
+
+1. cmd上登录memcache
+
+
+> telnet 127.0.0.1 11211
+1
+> telnet 127.0.0.1 11211
+2. 列出所有keys
+
+
+stats items // 这条是命令
+STAT items:7:number 1 
+ STAT items:7:age 188
+ 
+stats items // 这条是命令
+STAT items:7:number 1 
+ STAT items:7:age 188
+ END
+3. 通过itemid获取key
+
+接下来基于列出的items id，本例中为7，第2个参数为列出的长度，0为全部列出
+
+ stats cachedump 7 0 // 这条是命令
+ ITEM Sess_sidsvpc1473t1np08qnkvhf6j2 [183 b; 1394527347 s]
+ END
+ 
+ stats cachedump 7 0 // 这条是命令
+ ITEM Sess_sidsvpc1473t1np08qnkvhf6j2 [183 b; 1394527347 s]
+ END
+4. 通过get获取key值
+
+上面的stats cachedump命令列出了我的session key，接下来就用get命令查找对应的session值
+
+get Sess_sidsvpc1473t1np08qnkvhf6j2 //这条是命令
+VALUE
+Sess_sidsvpc1473t1np08qnkvhf6j2 1440 1
+ 83
+ Sess_|a:5:{s:6:"verify";s:32:"e70981fd305170c41a5632b2a24bbcaa";s:3:"uid";s:1:"1
+ ";s:8:"username";s:5:"admin";s:9:"logintime";s:19:"2014-03-11 16:24:25";s:7:"log
+ inip";s:9:"127.0.0.1";}
+ 
+get Sess_sidsvpc1473t1np08qnkvhf6j2 //这条是命令
+VALUE
+Sess_sidsvpc1473t1np08qnkvhf6j2 1440 1
+ 83
+ Sess_|a:5:{s:6:"verify";s:32:"e70981fd305170c41a5632b2a24bbcaa";s:3:"uid";s:1:"1
+ ";s:8:"username";s:5:"admin";s:9:"logintime";s:19:"2014-03-11 16:24:25";s:7:"log
+ inip";s:9:"127.0.0.1";}
+--------------------------------------------------------------------------
+
+servlet java扩展web服务器功能的组件规范
+
+常见servlect容器
+
+ibm websphere
+oracle weblogic
+Apache tomcat
+redhat jboss
+
+
+
+tomcat 虚拟主机
+
+配置文件书写风格
+
+<a c=1 s=d /> =<a> a=1 s=d </a>
+
+
+cat /usr/local/tomcat/conf/server.xml
+
+<Server>
+  <Service>
+  <Connector port=8090 />
+  <Connector port=8009 />
+  <Engine name="Catalina" defaultHost="localhost">
+  <Host name="www.a.com" appBase="a" unpackWAPS="true" autoDeploy="true">
+  </Host>
+  <Host name="www.b.com" appBase="b" unpackWARS="true" autoDeploy="true">
+  </Host>
+  
+  appBase 网站的根目录
+  相对tomcat的安装目录
+  
+  defaultHost 默认主机
+  
+  <Host name="www.b.com" appBase="b" unpackWARS="true" autoDeploy="true">
+<Context path="" docBase="base"/>
+</Host>
+
+docBase //当访问www.b.com时候 根目录跳转到b/base
+  <Host name="www.b.com" appBase="b" unpackWARS="true" autoDeploy="true">
+<Context path="/test" docBase="/var/www/html/"/>
+</Host>
+docBase //当访问www.b.com/test时候 根目录跳转到/var/www/html/
+
+
+配置Tomcat支持SSL加密网站
+
+<Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
+keystoreFile="/usr/local/tomcat/keystore" keystorePass="123456" clientAuth="false" sslProtocol="TLS" />
+
+
+
+配置Tomcat日志
+vim /usr/local/tomcat/conf/server.xml

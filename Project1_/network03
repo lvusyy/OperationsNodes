@@ -1,0 +1,133 @@
+mac地址  十六进制  48位  6字节
+前24位厂商标示，后24位是设备编号
+学习，广播，转发，更新
+vlan
+控制广播
+增加安全
+增加带宽利用
+延迟降低
+
+trunk
+打标记  ieee 802.1q
+
+以太通道
+增加带宽，增加可靠性
+
+
+ip分类
+A  1~127
+	255.0.0.0
+B  128~191
+	255.255.0.0
+C  192~223
+	255.255.255.0
+
+
+
+192.168.0.1  /24     192.168.0.1～192.168.0.254
+255.255.255.0
+11111111.11111111.11111111.00000000
+
+一个ip地址段中第一个地址叫 网络ID，最后一个地址叫 广播地址
+
+1 网络位
+0 主机位
+网段
+
+交换机  组建局域网
+路由器  连接不同范围的主机
+
+网关
+no shutdown  //开启接口
+ip address  192.168.1.254 255.255.255.0  //配置ip地址
+no ip address   //删除接口的ip地址
+
+ICMP 提供网络状态信息
+ping 
+
+show ip route   //查看路由表
+C  直连路由，产生条件是接口开启并且配置了ip地址
+S  静态路由，由管理员手工配置，要实现数据互通需要配置
+			来回两个方向，否则有去无回
+192.168.3.0
+
+配置静态路由：
+route 1  
+ip route 192.168.3.0 255.255.255.0 192.168.2.2
+ip route 192.168.5.0 255.255.255.0 192.168.2.2
+route 2
+ip route 192.168.1.0 255.255.255.0 192.168.2.1
+ip route 192.168.5.0 255.255.255.0 192.168.4.2
+route 3
+ip route 192.168.1.0 255.255.255.0 192.168.4.1
+ip route 192.168.3.0 255.255.255.0 192.168.4.1
+
+思路
+1，查看路由表，查看目标网段的路由是否存在
+2，如果不存在，就使用静态路由添加目标网段
+
+三层交换机配置
+1，创建vlan2、vlan3
+2，将接口加入相应vlan
+Switch(config)#in f0/2
+Switch(config-if)#switchport access vlan 2
+Switch(config)#in f0/3
+Switch(config-if)#switchport access vlan 3
+3，开启路由功能  
+	Switch(config)#ip routing
+4，进入vlan接口（虚拟接口）配置ip地址
+	作为客户机的网关
+Switch(config)#interface vlan 1
+Switch(config-if)#ip address 192.168.1.254 255.255.255.0
+Switch(config-if)#no shutdown
+Switch(config)#interface vlan 2
+Switch(config-if)#ip address 192.168.2.254 255.255.255.0
+Switch(config)#interface vlan 3
+Switch(config-if)#ip address 192.168.3.254 255.255.255.0
+=================================================
+
+1，增加二层交换机，创建vlan2、vlan3
+2，并将相应接口加入vlan
+Switch(config)#in f0/2
+Switch(config-if)#switchport access vlan 2
+Switch(config)#in f0/3
+Switch(config-if)#switchport access vlan 3
+3，f0/24口设置为中继链路
+
+4，在三层交换机上配置Trunk并指定接口封装为802.1q
+Switch(config)#interface fastEthernet 0/24
+Switch(config-if)#switchport trunk encapsulation dot1q 
+Switch(config-if)#switchport mode trunk 
+
+---------------------------------------------------------------------
+在三层交换机中：
+Switch(config)#in f0/23
+Switch(config-if)#no switchport   //将交换机接口转换为路由接口
+Switch(config-if)#ip add 192.168.4.1 255.255.255.0   //为转换好的接口配置ip地址
+
+默认路由，是一种特殊的静态路由，可以达到允许设备访问任意网段的效果
+在三层交换机中：
+Switch(config)#ip route 0.0.0.0 0.0.0.0 192.168.4.2    //配置默认路由
+
+动态路由  基于某种动态路由协议的配置，可以自动学习路由条目
+ospf 
+宣告
+首先删除路由器的所有静态路由，然后配置动态路由
+Router(config)# router ospf 1    //启动OSPF路由进程
+Router(config-router)# network 192.168.4.0 0.0.0.255 area 0
+然后在三层交换机中配置动态路由ospf
+Switch(config)# router ospf 1     
+指定OSPF协议运行的接口和所在的区域
+Switch(config-router)# network 192.168.1.0 0.0.0.255 area 0
+Switch(config-router)# network 192.168.2.0 0.0.0.255 area 0
+Switch(config-router)# network 192.168.3.0 0.0.0.255 area 0
+Switch(config-router)# network 192.168.4.0 0.0.0.255 area 0
+
+
+
+
+
+
+
+
+

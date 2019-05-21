@@ -1,0 +1,150 @@
+subversion
+
+
+
+处理冲突
+============
+源文件  记录差异
+源文件.mine  本地
+源文件.r12   r12.版本
+源文件.r13   r13.版本
+===========
+处理好冲突之后删除 源文件.mine  本地 源文件.r12   r12.版本 源文件.r13   r13.版本
+之保留一个 源文件就可以了.
+
+可以用 resolve 文件 解决
+svn resolve 状态 文件
+也可以一次性 
+svn resolved -R 状态 文件或目录
+状态
+base         mine-full    theirs-full  working  
+其中树冲突只能设置为 working
+++++++++++++++++++++++++++++++++++++++++
+
+yum -y install subversion
+
+vim /var/svn/project/conf/svnserve.conf
+[general]
+### These options control access to the repository for unauthenticated
+### and authenticated users.  Valid values are "write", "read",
+### and "none".  The sample settings below are the defaults.
+anon-access = none
+//19行，匿名无任何权限
+auth-access = write
+//20行，有效账户可写
+password-db = passwd
+//27行，密码文件
+authz-db = authz
+//34行，ACL访问控制列表文件
+[root@web1 ~]# vim /var/svn/project/conf/passwd 
+… …
+[users]
+harry = 123456
+//用户名和密码
+tom = 123456
+//用户名和密码
+[root@web1 ~]# cat /var/svn/project/conf/authz 
+[/]                                //定义ACL访问控制
+harry = rw                        //用户对项目根路径可读可写
+tom = rw
+
+启动服务
+ svnserve -d  -r /var/svn/project
+ 
+ 
+ 客户端
+svn --username harry --password 123456 \
+co svn://192.168.2.100/ code    
+
+http方式访问
+++++++++++++++++++++++++++++++++++
+==================================
+
+安装     um -y install mod_dav_svn  
+
+创建多个svn仓库
+svnadmin create /data/svn/exam_1  
+svnadmin create /data/svn/exam_2  
+svnadmin create /data/svn/exam_3  
+
+
+配置
+mkdir -p /data/svn/conf  
+cp -r /data/svn/exam_1/conf/* /data/svn/conf  
+  
+配置passwd  
+vi /data/svn/conf/passwd  
+manager = 123456  
+dev1 = 123456  
+dev2 = 123456  
+dev3 = 123456  
+  
+art1 = 123456  
+art2 = 123456  
+art3 = 123456  
+  
+des1 = 123456  
+des2 = 123456  
+des3 = 123456  
+  
+配置authz  
+vi /data/svn/conf/authz  
+admin = manager  
+dev = dev1,dev2,dev3    
+art = art1,art2,art3  
+des = des1,des2,des3  
+  
+[/]  
+@admin = rw  
+* =  
+[exam_1:/]  
+@admin = rw  
+@dev = rw  
+* =   
+[exam_2:/]  
+@admin = rw  
+@art = rw  
+* =   
+[exam_3:/]  
+@admin = rw  
+@des = rw  
+* =  
+  
+配置全局文件 svnserve.conf  
+vi /data/svn/conf/svnserve.conf  
+anon-access = none  #禁止匿名访问，设置为none。默认为read，参数：read,write,none  
+auth-access = write #授权用户写权限  
+  
+password-db = /data/svn/conf/passwd  
+authz-db = /data/svn/conf/authz  
+  
+realm = svn #每个SVN项目的认证名，会在认证提示里显示，建议写项目名称。  
+
+
+启动参数
+svnserve -d -r /home/svn --config-file /data/svn/conf/svnserve.conf   
+
+
+
+vi /etc/httpd/conf.d/subversion.conf  
+<Location /svn> #/svn是虚拟目录，映射到/data/svn中。  
+   DAV svn  
+     
+        #SvnPath /data/svn/ #只支持一个主目录的SVN版本库  
+        SVNParentPath /data/svn/ #支持多个相同父目录的SVN版本库  
+  
+   # Limit write permission to list of valid users.  
+   #<LimitExcept GET PROPFIND OPTIONS REPORT>  
+      # Require SSL connection for password protection.  
+      # SSLRequireSSL  
+  
+      AuthType Basic  
+      AuthName "Authorization SVN"  
+      AuthzSVNAccessFile /data/svn/conf/authz  
+      AuthUserFile /data/svn/conf/http_passwd  
+      Require valid-user  
+   #</LimitExcept>  
+</Location>  
+  
+设置权限目录  
+  chown -R apache:apache /data/svn/  

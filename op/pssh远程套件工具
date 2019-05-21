@@ -1,0 +1,15 @@
+安装pssh后会提供如下命令：
+/usr/bin/pnuke
+/usr/bin/prsync
+/usr/bin/pscp.pssh
+/usr/bin/pslurp
+
+yum install pssh
+
+
+         :  o ssh : pssh
+         :  o scp : pscp
+         :  o nuke : pnuke
+         :  o rsync : prsync
+         :  o slurp : pslurp
+

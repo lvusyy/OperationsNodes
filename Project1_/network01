@@ -1,0 +1,95 @@
+微信 qq 浏览网页  游戏 
+
+信息传递  资源共享
+增加数据的安全
+提高系统的处理性能
+
+60年代
+分组交换 提高传输效率
+70-80年代
+ISO（国际标准化组织）
+IEEE 电子与电器工程师学会
+TCP/IP
+
+wifi 美国标准
+wapi 中国标准
+
+5G 
+
+WAN 广域网  几十～上百KM   ISP网络服务供应商
+LAN 局域网 小于1KM  需要个人/组织 维护
+
+品牌 cisco
+型号 2911路由器  2960交换机
+
+拓扑结构
+WAN
+点对点
+LAN
+星形  易于实现 易于扩展 方便故障排查
+网状  高可靠 高成本
+
+ISO（国际标准化组织）颁布了OSI七层网络参考模型
+OSI七层  （理论框架）
+TCP/IP五层  （实际使用）
+    
+bit  1 0
+
+有源   网线   近距离传递    150米以内
+无源   光纤   远距离传递    N公里以上
+
+cat5   5类
+cat5e  超5类
+
+T568A    T568B  白橙 橙 白绿  蓝 白蓝 绿 白棕 棕
+网线两端使用相同标准连接
+直通线 或 直连线
+网线两端使用不同同标准连接
+交叉线
+
+连接设备的终端软件：
+crt
+xshell
+交换机命令行模式：
+用户模式
+Switch>
+特权模式（一般用于查看配置信息）
+Switch>enable 
+Switch#
+全局配置模式（所做的配置对整个设备生效）
+Switch#configure terminal 
+Switch(config)#
+接口模式
+Switch(config)#interface fastEthernet 0/1    //进入1号接口
+Switch(config-if)#
+exit命令  //返回上一模式
+end命令   //回到特权模式
+快捷键 <Ctrl-Z>退出到特权模式，与end命令作用相同
+ctrl+shift+6    //解除输入命令错误卡死
+Switch(config)#hostname sw1     //修改主机名为sw1
+tarena-sw1#show running-config   //查看设备配置（按空格键翻页）
+
+Switch(config)#enable password 123   //设置密码
+Switch#copy running-config startup-config   //保存配置
+Switch#w      //保存配置
+Switch#reload   //重启
+Switch#erase startup-config   //清空配置，清空后重启生效
+
+配置禁用DNS查询
+switch(config)#no ip domain-lookup   //防止命令行卡死
+配置输入同步
+Switch(config)#line console 0
+Switch(config-line)#logging synchronous  //防止系统提示信息打断用户命令输入
+配置控制台会话时间永不超时
+Switch(config)#line console 0
+Switch(config-line)#exec-timeout 0 0  //几分几秒后锁屏，0 0是永不锁
+
+
+
+
+
+
+
+
+
+

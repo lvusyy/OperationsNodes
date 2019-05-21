@@ -1,0 +1,131 @@
+nginx web服务器
+nginx 代理服务功能:
+  代理,调度,健康检查
+  
+  代理:
+  七层代理(http) 
+  先定义,在使用
+  http{
+    upstream 名称1{
+	server 192.168.2.100 weight=2 max_fails=3 fail_timeout=30;
+	server 192.168.2.200;
+	server 192.168.2.20 down;
+      }
+  }
+  
+  server{
+  listen 80;
+  server_name www.a.com;
+ 
+ location / {
+    proxy_pass http://名称1
+  }
+  
+  或者
+      proxy_pass http://名称1
+
+  }
+  
+  四层代理(tcp/udp)
+ mysql dns dhcp 
+ 
+编译 ./configuration --with-stream
+
+stream {
+  upstream 名称{
+    server 192.168.2.100:3306;
+    server 192.168.2.200:3306;
+  }
+  
+  server {
+    listen 3306; #注意不要端口冲突.
+    proxy_connect_timeout 10s; #连接超时1秒
+    proxy_timeout 3s; #连接超过3秒后自动失败
+    proxy_pass_backed;
+  }
+}
+http{...}
+
+
+报错码
+默认 代码 404,500,502 ..
+error_page 404 /404.jpg
+error_page 500 /500.html
+
+nginx 状态 (--with-http_stub_status_module)
+
+vim nginx.conf
+
+location /任意字符 {
+  stub_status on;
+}
+
+
+
+性能调优
+修改Nginx配置文件，增加并发量
+
+worker_processes  2;                    //与CPU核心数量一致
+events {
+worker_connections 65535;        //每个worker最大并发连接数
+use epoll;
+}
+
+
+nginx.cfg
+优化Linux内核参数（最大文件数量）
+
+
+ulimit -a 
+ulimit -Hn 10000
+ulimit -Sh 10000
+
+
+优化客户包大小
+
+nginx.conf
+http{
+client_header_buffer_size 1k; //默认请求包头信息的缓存大小
+large_client_header_buffers 4 4k; //大请求包头部信息的缓冲区大小
+
+}
+
+
+
+日志切割
+
+mv /user/local/nginx/log/access /user/local/nginx/log/access`date +%y%m%d`
+kill -USR1 pid //发送信号到nginx 让nginx生成新的日志文件
+
+页面压缩
+
+http {
+.. ..
+gzip on;                            //开启压缩
+gzip_min_length 1000;                //小文件不压缩
+gzip_comp_level 4;                //压缩比率
+gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+                                    //对特定文件压缩，类型参考mime.types
+.. ..
+}
+
+
+服务器内存缓存
+
+http { 
+open_file_cache          max=2000  inactive=20s;
+        open_file_cache_valid    60s;
+        open_file_cache_min_uses 5;
+        open_file_cache_errors   off;
+//设置服务器最大缓存2000个文件句柄，关闭20秒内无请求的文件句柄
+//文件句柄的有效时间是60秒，60秒后过期
+//只有访问次数超过5次会被缓存
+} 
+
+
+
+
+session和cookie
+
+client------------------->server(动态,登录)
+用户名,密码--------->

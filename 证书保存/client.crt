@@ -1,0 +1,74 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 2 (0x2)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=CN, ST=zhejiang, L=hangzhou, O=nsd, OU=it, CN=makeit/emailAddress=lvusyy@qq.com
+        Validity
+            Not Before: Mar 27 03:36:45 2019 GMT
+            Not After : Mar 26 03:36:45 2020 GMT
+        Subject: C=CN, ST=zhejiang, O=nsd, OU=it, CN=makeit.com/emailAddress=lvusyy@163.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (1024 bit)
+                Modulus:
+                    00:b4:20:ab:34:20:bf:5e:e9:04:95:99:c8:95:06:
+                    81:ed:e7:41:b0:de:d0:fe:09:46:64:0c:b3:5a:84:
+                    e8:d7:fe:e9:37:4a:97:54:13:eb:12:f2:bb:13:c5:
+                    3b:a4:3e:67:7a:99:9d:39:f4:d4:58:8f:7e:dd:0c:
+                    c6:cc:80:c0:27:b4:04:39:3e:82:78:8d:6c:37:ed:
+                    c6:f3:9f:fb:f2:f7:02:64:cf:6e:d7:ec:08:46:0d:
+                    2d:d8:02:c9:c4:c3:ba:a7:cc:6f:8e:e9:2d:75:86:
+                    0c:f0:72:19:a3:95:7d:fa:40:42:7d:04:5c:ae:83:
+                    5d:e1:2c:22:93:1d:2e:83:79
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                99:60:BF:7E:DE:6D:AB:83:59:41:71:D6:E8:D3:66:32:55:12:8B:A0
+            X509v3 Authority Key Identifier: 
+                DirName:/C=CN/ST=zhejiang/L=hangzhou/O=nsd/OU=it/CN=makeit/emailAddress=lvusyy@qq.com
+                serial:ED:F2:A4:26:37:41:B9:86
+
+    Signature Algorithm: sha256WithRSAEncryption
+         ab:13:5a:94:4c:c1:a6:19:76:ae:fe:ae:b6:78:17:95:48:ce:
+         be:a5:79:a9:3c:cc:c2:dd:1e:61:d6:e0:d3:33:f0:fe:f9:de:
+         69:a8:82:81:6e:c8:fc:7e:8d:e3:ee:f6:e3:ab:01:3f:3d:9b:
+         fb:2a:66:e8:06:60:04:1a:c9:92:90:ba:32:85:bb:ea:1b:62:
+         5a:1a:44:e1:e1:f6:3e:90:97:a5:46:29:b3:8f:3d:67:e0:11:
+         13:ac:10:63:92:80:e9:c2:4e:cc:71:24:c8:0f:b7:55:8a:42:
+         bb:73:b7:59:30:03:a0:6c:44:de:a1:d2:74:60:18:46:ab:5a:
+         11:3e:e8:f4:33:39:7f:55:84:11:f8:44:c8:90:09:9b:89:af:
+         e7:5d:a1:4e:78:ba:67:f5:a7:4f:dc:07:86:d9:42:cc:b8:ca:
+         a1:2f:a8:2e:2d:80:23:07:04:b9:cd:ca:33:16:e6:a1:11:17:
+         21:89:ed:6d:d7:8a:0c:3b:45:8b:9f:83:e5:03:32:48:99:ef:
+         7a:86:ac:a0:2b:5c:38:64:70:12:d0:f7:ae:b7:0a:56:f0:c9:
+         af:f2:cc:bc:75:f6:12:4f:eb:08:1a:30:00:a8:f8:2a:de:67:
+         92:f0:c9:63:79:9c:02:45:c9:fb:cc:27:31:a4:19:02:40:da:
+         78:f4:83:52
+-----BEGIN CERTIFICATE-----
+MIID3DCCAsSgAwIBAgIBAjANBgkqhkiG9w0BAQsFADB9MQswCQYDVQQGEwJDTjER
+MA8GA1UECAwIemhlamlhbmcxETAPBgNVBAcMCGhhbmd6aG91MQwwCgYDVQQKDANu
+c2QxCzAJBgNVBAsMAml0MQ8wDQYDVQQDDAZtYWtlaXQxHDAaBgkqhkiG9w0BCQEW
+DWx2dXN5eUBxcS5jb20wHhcNMTkwMzI3MDMzNjQ1WhcNMjAwMzI2MDMzNjQ1WjBv
+MQswCQYDVQQGEwJDTjERMA8GA1UECAwIemhlamlhbmcxDDAKBgNVBAoMA25zZDEL
+MAkGA1UECwwCaXQxEzARBgNVBAMMCm1ha2VpdC5jb20xHTAbBgkqhkiG9w0BCQEW
+Dmx2dXN5eUAxNjMuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC0IKs0
+IL9e6QSVmciVBoHt50Gw3tD+CUZkDLNahOjX/uk3SpdUE+sS8rsTxTukPmd6mZ05
+9NRYj37dDMbMgMAntAQ5PoJ4jWw37cbzn/vy9wJkz27X7AhGDS3YAsnEw7qnzG+O
+6S11hgzwchmjlX36QEJ9BFyug13hLCKTHS6DeQIDAQABo4H4MIH1MAkGA1UdEwQC
+MAAwLAYJYIZIAYb4QgENBB8WHU9wZW5TU0wgR2VuZXJhdGVkIENlcnRpZmljYXRl
+MB0GA1UdDgQWBBSZYL9+3m2rg1lBcdbo02YyVRKLoDCBmgYDVR0jBIGSMIGPoYGB
+pH8wfTELMAkGA1UEBhMCQ04xETAPBgNVBAgMCHpoZWppYW5nMREwDwYDVQQHDAho
+YW5nemhvdTEMMAoGA1UECgwDbnNkMQswCQYDVQQLDAJpdDEPMA0GA1UEAwwGbWFr
+ZWl0MRwwGgYJKoZIhvcNAQkBFg1sdnVzeXlAcXEuY29tggkA7fKkJjdBuYYwDQYJ
+KoZIhvcNAQELBQADggEBAKsTWpRMwaYZdq7+rrZ4F5VIzr6leak8zMLdHmHW4NMz
+8P753mmogoFuyPx+jePu9uOrAT89m/sqZugGYAQayZKQujKFu+obYloaROHh9j6Q
+l6VGKbOPPWfgEROsEGOSgOnCTsxxJMgPt1WKQrtzt1kwA6BsRN6h0nRgGEarWhE+
+6PQzOX9VhBH4RMiQCZuJr+ddoU54umf1p0/cB4bZQsy4yqEvqC4tgCMHBLnNyjMW
+5qERFyGJ7W3Xigw7RYufg+UDMkiZ73qGrKArXDhkcBLQ9663Clbwya/yzLx19hJP
+6wgaMACo+CreZ5LwyWN5nAJFyfvMJzGkGQJA2nj0g1I=
+-----END CERTIFICATE-----
