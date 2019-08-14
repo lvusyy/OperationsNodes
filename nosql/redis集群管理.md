@@ -31,7 +31,7 @@
 ##### 查看集群
 		redis-cli -h 192.168.4.51 -p 6351
         	> cluster info //查看集群信息
-        	> cluster nodess //查看集群节点信息
+        	> cluster nodes //查看集群节点信息
     	log
         	cat /var/log/redis.log
             
@@ -103,10 +103,10 @@
 ### redis 主从复制
 ##### 主从复制工作原理
 		- slave向master发送sync命令
-		- master启动后台存盘进程,手机所有修改数据命令
+		- master启动后台存盘进程,收集所有修改数据命令
 		- master完成后台存盘后,传送整个数据文件到slave
 		- slave接收数据文件,加载到内存中完成首次完全同步
-		- 手续有新数据产生时,master继续将新的数据收集到的修改名利一次传给slave,完成同步
+		- 后续有新数据产生时,master继续将新的数据传给slave,完成同步
 
 		缺点
         - 网络繁忙,会产生数据同步延时问题
@@ -251,7 +251,7 @@
             字符串操作
             append key value
             - 存在则追加,不存在则创建key及value,返回key长度
-             > append myname makeit
+             > append myname "makeit"
              setbit key offset value
              - 对key所存储字符串,设置或清除特定偏移量上的位(bit)
              - value值可以位1或0,offset位0~2^32之间 65535
@@ -284,7 +284,7 @@
            incr key
            	- 将key的值加1,
 #### list列表
-		Redis的list是一个字符列队
+	Redis的list是一个字符列队
         先进后出
         一个key可有有多个值
         
@@ -308,31 +308,32 @@
                 
                 
         列表的操作
-        index key index
-        	返回列表第index个值
-        > index key 0; index key 2; index key -2
+        lindex key index
+        返回列表第index个值
+        > lindex key 0; index key 2; index key -2
         lset key index value
-        	将key中index 位置的值修改位value
-            >lset list 3 test
+        将key中index 位置的值修改位value
+        >lset list 3 test
         
         rpush key value [value ...]
         - 将value插入到key的末尾
         > rpush list3 a b c //list3 值位a b c
         > rpush list3 d     //末尾插入d
         rpop key
-        	删除并返回key末尾的值
-        	>rpush list4 a b c   //list4值位 a b c
-        	>rpop list4	          //删除末尾的c ,并返回删除的值
+        删除并返回key末尾的值
+        >rpush list4 a b c   //list4值位 a b c
+        >rpop list4	          //删除末尾的c ,并返回删除的值
+	
 ##### hash表
-		redis hash
+	redis hash
         是一个string类型的field和value的映射表
         一个key可对应多个field,一个field对应一个value
         将一个对象存储位hash类型,较于每个字段都存储成string类型更能节省内存
         
         hset key field value
-        	将hash表中field值设置位value
-            >hset site google 'www.g.cn'
-            >hset site baidu   'www.baidu.com'
+        将hash表中field值设置位value
+           >hset site google 'www.g.cn'
+           >hset site baidu   'www.baidu.com'
             >
         hget key filed 
         	获取hash表中field的值
