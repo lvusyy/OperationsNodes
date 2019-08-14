@@ -232,10 +232,11 @@
          - 执行fsync策略时的速度可能会比RDB方式慢
 
 	
-    
+#### redis 查看所有key
+	> keys * //返回所有key
 #### redis 数据类型
 
-		string
+	string
         字符串操作
         set key value [ex seconds] [px milliseconds] [nx|xx]  XxX 如果键不存在新建,默认就是XX模式
         - 设置key及值,过期时间可以使用秒或毫秒为单位
